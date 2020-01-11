@@ -115,6 +115,7 @@ public class ACRestClient: RestClient {
         
     }
     
+    //TODO: This will probably not work as expected if you pass both a release and a nextLink.
     public func getCrashGroups(app: ACApp, release:(ACRelease?), nextLink: String?) -> [ACCrashErrorGroup] {
         
         var errorGroups = [ACCrashErrorGroup]()
@@ -141,9 +142,8 @@ public class ACRestClient: RestClient {
                 
                 let errorGroupResponse = try decoder.decode(ErrorGroupsResponse.self, from: json)
                 errorGroups += errorGroupResponse.errorGroups
-                print(errorGroupResponse)
                 if let nextLinkFromResponse = errorGroupResponse.nextLink {
-                    //TODO: Recursion is a bad idea here do to stack overflow with lots of results. Use iteration instead.
+                    //TODO: Recursion is a bad idea here due to stack overflow with lots of results. Use iteration instead.
                     errorGroups += self.getCrashGroups(app: app, release:release, nextLink: nextLinkFromResponse)
                 }
             } catch (let deserializationErorr){
@@ -158,12 +158,23 @@ public class ACRestClient: RestClient {
         
     }
     
-    public func searchErrorGroups(app : ACApp, methodName : String) -> [ACCrashErrorGroup] {
+    //AppCenter doens't seem to offer a search that can both accept an oData arg and specify a release.
+    //Adding the release or build to the oData arg causes the API call to fail.
+    //It may be possible to use the a query string "?q=" instead of oData (not in addition, that fails too).
+    //So for now this just searches for all methods and filters out the results for a particular release.
+    public func searchErrorGroups(app : ACApp, methodName : String, release: ACRelease?) -> [ACCrashErrorGroup] {
         let oData = "exceptionMethod eq '" + methodName + "'";
-        return self.searchErrorGroups(app: app, oData: oData, nextLink: nil)
+        var groups = self.searchErrorGroups(app: app, oData: oData, nextLink: nil)
+        if let release = release {
+            groups = groups.filter { (group) -> Bool in
+                return group.appVersion == release.short_version && group.appBuild == release.version
+            }
+        }
+        
+        return groups
     }
     
-    //TODO: This method is almost identical to one above
+    //TODO: This method is almost identical to another in here.
     public func searchErrorGroups(app : ACApp, oData : String,  nextLink: String?) -> [ACCrashErrorGroup] {
         var errorGroups = [ACCrashErrorGroup]()
         
@@ -182,9 +193,7 @@ public class ACRestClient: RestClient {
                 
                 let errorGroupResponse = try decoder.decode(ErrorGroupsResponse.self, from: json)
                 errorGroups += errorGroupResponse.errorGroups
-                print(errorGroupResponse)
                 if let nextLinkFromResponse = errorGroupResponse.nextLink {
-                    //TODO: Recursion is a bad idea here do to stack overflow with lots of results. Use iteration instead.
                     errorGroups += self.getCrashGroups(app: app, release:nil, nextLink: nextLinkFromResponse)
                 }
             } catch (let deserializationErorr){

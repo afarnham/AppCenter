@@ -23,8 +23,8 @@ public class ACInteractivePrompt{
             orgName = env.orgName
             token = env.token
         } else {
-            promptForText(title:"Enter org name: ")
-            promptForText(title:"Enter token: ")
+            orgName = promptForText(title:"Enter org name: ")
+            token = promptForText(title:"Enter token: ")
         }
 
 
@@ -49,20 +49,41 @@ public class ACInteractivePrompt{
         let appActionIndex = promptForSelection(title: "Select:", options:["Releases", "Error Groups"])
 
         if appActionIndex == 0 {
-            let releases = client.getReleases(app: selectedApp)
+            var releases = client.getReleases(app: selectedApp)
+            releases.sort { (release1, release2) -> Bool in
+                guard let release1AsNum =  Int(release1.version) else {
+                    return true
+                }
+                guard let release2AsNum =  Int(release2.version) else {
+                    return true
+                }
+                
+                return release1AsNum < release2AsNum
+            }
             let releaseIndex = promptForSelection(title: "Select Release:", options: releases.map({ (release) -> String in
                 return release.short_version + " " + release.version
             }))
-            print("Selected \(releaseIndex)")
-            self.promptForCrashOptions(client:client, app: selectedApp, release: releases[releaseIndex])
+            self.promptForReleaseOptions(client:client, app: selectedApp, release: releases[releaseIndex])
             
         } else {
-            self.promptForCrashOptions(client:client, app: selectedApp, release: nil)
+            let crashGroups = client.getCrashGroups(app: selectedApp, release:nil, nextLink: nil)
+            self.promptForGroupSelection(client:client, app: selectedApp, release: nil, crashGroups: crashGroups)
         }
     }
     
-    func promptForCrashOptions(client: ACRestClient,app: ACApp, release: ACRelease?) {
-        let crashGroups = client.getCrashGroups(app: app, release:release, nextLink: nil)
+    func promptForReleaseOptions(client: ACRestClient,app: ACApp, release: ACRelease?) {
+        let releaseActionIndex = promptForSelection(title: "Select:", options:["Search", "Error Groups"])
+
+        if releaseActionIndex == 0 {
+            let crashGroups = client.searchErrorGroups(app: app, methodName: "mainThreadLocked:seconds:", release: release)
+            self.promptForGroupSelection(client:client, app: app, release: release, crashGroups: crashGroups)
+        } else {
+            let crashGroups = client.getCrashGroups(app: app, release:release, nextLink: nil)
+            self.promptForGroupSelection(client:client, app: app, release: release, crashGroups: crashGroups)
+        }
+    }
+    
+    func promptForGroupSelection(client: ACRestClient,app: ACApp, release: ACRelease?, crashGroups: [ACCrashErrorGroup]) {
         let crashGroupIndex = promptForSelection(title: "Select Group:", options: crashGroups.map({ (group) -> String in
             return group.exceptionMessage ?? ""
         }))
