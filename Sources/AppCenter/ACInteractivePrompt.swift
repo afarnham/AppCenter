@@ -15,13 +15,20 @@ public class ACInteractivePrompt{
         
     }
     
-    public func run () {
+    public func run (env: ACEnvironment?) {
         
-        let orgName = promptForText(title:"Enter org name: ")
-        
-        let token = promptForText(title:"Enter token: ")
+        var orgName : String?
+        var token : String?
+        if let env = env {
+            orgName = env.orgName
+            token = env.token
+        } else {
+            promptForText(title:"Enter org name: ")
+            promptForText(title:"Enter token: ")
+        }
 
-        let client = ACRestClient(ownerName: orgName, token: token)
+
+        let client = ACRestClient(ownerName: orgName!, token: token!)
 
         let apps = client.getApps().sorted { (app1, app2) -> Bool in
             let compareResult = app1.display_name.compare(app2.display_name)
@@ -57,7 +64,7 @@ public class ACInteractivePrompt{
     func promptForCrashOptions(client: ACRestClient,app: ACApp, release: ACRelease?) {
         let crashGroups = client.getCrashGroups(app: app, release:release, nextLink: nil)
         let crashGroupIndex = promptForSelection(title: "Select Group:", options: crashGroups.map({ (group) -> String in
-            return group.exceptionMessage
+            return group.exceptionMessage ?? ""
         }))
 
         let crashGroup = crashGroups[crashGroupIndex]

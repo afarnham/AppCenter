@@ -22,7 +22,7 @@ public struct ACCrashErrorGroup : Codable {
     let firstOccurrence: Date
     let lastOccurrence: Date
     let exceptionType: String
-    let exceptionMessage: String
+    let exceptionMessage: String?
     let exceptionClassMethod: Bool
     let exceptionAppCode: Bool
     let hidden: Bool = false
