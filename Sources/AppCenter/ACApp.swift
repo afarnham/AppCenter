@@ -9,19 +9,19 @@
 import Foundation
 
 public struct ACApp : Codable {
-    var id: String
-    var app_secret: String
+    public var id: String
+    public var app_secret: String
     var description: String?
     public var display_name: String
-    var os: String
-    var platform: String
-    var origin: String
-    var icon_url: String?
-    var created_at: String
-    var updated_at: Date
-    var release_type: String?
+    public var os: String
+    public var platform: String
+    public var origin: String
+    public var icon_url: String?
+    public var created_at: String
+    public var updated_at: Date
+    public var release_type: String?
     
-    func name() -> String {
+    public func name() -> String {
         var name = self.display_name
         name = name.replacingOccurrences(of: " ", with: "-")
         return name
