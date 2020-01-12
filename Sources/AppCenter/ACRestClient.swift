@@ -20,6 +20,10 @@ public class ACRestClient: RestClient {
         self.headers = ["X-API-Token":token]
     }
     
+    public static func clientWithEnvironment(environment:ACEnvironment) -> ACRestClient{
+        return ACRestClient(ownerName: environment.ownerName, token: environment.token)
+    }
+    
     public static func clientWithHomeDirectoryCredentials() -> ACRestClient? {
         let envPath = URL(fileURLWithPath: NSHomeDirectory())
             .appendingPathComponent(".appCenterSwift.json")
@@ -28,7 +32,7 @@ public class ACRestClient: RestClient {
         do {
             let data = try Data(contentsOf: envPath)
             let env = try decoder.decode(ACEnvironment.self, from: data)
-            return ACRestClient(ownerName: env.ownerName, token: env.token)
+            return ACRestClient.clientWithEnvironment(environment: env)
         } catch {
             return nil
         }

@@ -8,6 +8,6 @@
 import Foundation
 
 public struct ACEnvironment: Codable {
-    let ownerName: String
-    let token: String
+    public let ownerName: String
+    public let token: String
 }
