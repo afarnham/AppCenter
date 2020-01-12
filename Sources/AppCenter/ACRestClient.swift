@@ -20,6 +20,20 @@ public class ACRestClient: RestClient {
         self.headers = ["X-API-Token":token]
     }
     
+    public static func clientWithHomeDirectoryCredentials() -> ACRestClient? {
+        let envPath = URL(fileURLWithPath: NSHomeDirectory())
+            .appendingPathComponent(".appCenterSwift.json")
+        
+        let decoder = JSONDecoder()
+        do {
+            let data = try Data(contentsOf: envPath)
+            let env = try decoder.decode(ACEnvironment.self, from: data)
+            return ACRestClient(ownerName: env.ownerName, token: env.token)
+        } catch {
+            return nil
+        }
+    }
+    
     public func synchronousData(relativeURL: String, completionBlock:@escaping ((Data) -> Void), errorBlock:(@escaping (RestClientError) -> Void)){
             
         let semaphore = DispatchSemaphore(value: 0)
@@ -348,6 +362,10 @@ public class ACRestClient: RestClient {
             throw DateError.invalidDate
         })
         return decoder
+    }
+    
+    public func startInteractivePrompt() {
+        ACInteractivePrompt().run(client: self)
     }
     
 //    curl -H "X-API-Token: <token>" "https://api.appcenter.ms/v0.1/apps/<org>/<app name>/errors/2518282636709999999-ac65d33e-277f-4954-8e3b-741cd6c42e4a/attachments/b27fcaac-95a2-4adb-ab51-9dfff1c03948/text"

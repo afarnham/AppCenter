@@ -15,20 +15,7 @@ public class ACInteractivePrompt{
         
     }
     
-    public func run (env: ACEnvironment?) {
-        
-        var orgName : String?
-        var token : String?
-        if let env = env {
-            orgName = env.orgName
-            token = env.token
-        } else {
-            orgName = promptForText(title:"Enter org name: ")
-            token = promptForText(title:"Enter token: ")
-        }
-
-
-        let client = ACRestClient(ownerName: orgName!, token: token!)
+    public func run (client: ACRestClient) {
 
         let apps = client.getApps().sorted { (app1, app2) -> Bool in
             let compareResult = app1.display_name.compare(app2.display_name)
