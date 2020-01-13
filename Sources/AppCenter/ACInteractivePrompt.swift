@@ -104,20 +104,4 @@ public class ACInteractivePrompt{
 
         }
     }
-    
-    func promptForSelection(title: String, options: [String]) -> Int {
-        print("\n\(title)")
-        
-        var promptString = ""
-        var x = 0
-        for option in options {
-            promptString = promptString.appendingFormat("\n%u:  %@", x, option)
-            x += 1
-        }
-        
-        promptString = promptString.appendingFormat("\n\nEnter selection: ")
-        print(promptString, separator:" ", terminator:"")
-        let response = readLine()
-        return Int(response!)!
-    }
 }
