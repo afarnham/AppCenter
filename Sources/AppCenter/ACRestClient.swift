@@ -293,6 +293,41 @@ public class ACRestClient: RestClient {
         return text
     }
     
+    public func normalizeCrashText(crashText: String) -> String {
+        var tranformedLines = [String]()
+        for substring in crashText.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n") {
+            let originalLine = String(substring)
+            var transformedLine: String? = originalLine
+            if originalLine.starts(with: "{"){
+                //Remove line with JSON
+                transformedLine = nil
+            } else if originalLine.contains("Code Type:") && originalLine.contains(" (Native)") {
+                transformedLine = originalLine.replacingOccurrences(of: " (Native)", with: "")
+            } else if originalLine.starts(with: "Version: "){
+                //App center wants version line to have
+                    //"Version:    1.2.1 (12345)"
+                //But iOS reports are in format
+                    //"Version:     12345 (1.2.1)"
+                //So we swap it.
+                let versionRegex = try! NSRegularExpression(pattern: "^Version:\\s+ (\\S+)(.*\\((.*)\\))?", options:.anchorsMatchLines)
+                
+                if let buildNumber = versionRegex.stringMatch(toSearch: originalLine, matchIndex: 1) {
+                    if let version = versionRegex.stringMatch(toSearch: originalLine, matchIndex: 3) {
+                        transformedLine = originalLine.replacingOccurrences(of: "(\(version))", with: "(\(buildNumber))").replacingOccurrences(of: "\(buildNumber) ", with: "\(version) ")
+                    }
+                }
+            } else if originalLine.starts(with: "Thread ") && originalLine.contains(" name:") {
+                transformedLine = nil
+            }
+            
+            if let transformedLine = transformedLine {
+                tranformedLines.append(transformedLine)
+            }
+        }
+
+        return tranformedLines.joined(separator: "\n")
+    }
+    
     //curl -H "X-API-Token: <token>" "https://api.appcenter.ms/v0.1/apps/<org>/<app name>/errors/2518282636709999999-ac65d33e-277f-4954-8e3b-741cd6c42e4a/attachments"
     public func getAttachments(crash: ACCrashError) -> [ACAttachment] {
         var attachments = [ACAttachment]()
