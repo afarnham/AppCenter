@@ -293,8 +293,10 @@ public class ACRestClient: RestClient {
         return text
     }
     
-    public func normalizeCrashText(crashText: String) -> String {
+    public func normalizeCrashText(crashText: String) -> (reportText: String, error: Error?) {
         var tranformedLines = [String]()
+        var containsIncidentLine = false
+        let incidentIdentifierTargetText = "Incident Identifier:"
         for substring in crashText.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n") {
             let originalLine = String(substring)
             var transformedLine: String? = originalLine
@@ -316,6 +318,8 @@ public class ACRestClient: RestClient {
                         transformedLine = originalLine.replacingOccurrences(of: "(\(version))", with: "(\(buildNumber))").replacingOccurrences(of: "\(buildNumber) ", with: "\(version) ")
                     }
                 }
+            } else if originalLine.starts(with: incidentIdentifierTargetText){
+                containsIncidentLine = true
             } else if originalLine.starts(with: "Thread ") && originalLine.contains(" name:") {
                 transformedLine = nil
             }
@@ -324,8 +328,13 @@ public class ACRestClient: RestClient {
                 tranformedLines.append(transformedLine)
             }
         }
+        
+        if !containsIncidentLine {
+            let error = ACCrashFileUploadError(message: "Invalid crash report. Crash reports include a line beginning with '\(incidentIdentifierTargetText)'")
+            return ("", error)
+        }
 
-        return tranformedLines.joined(separator: "\n")
+        return (tranformedLines.joined(separator: "\n"), nil)
     }
     
     //curl -H "X-API-Token: <token>" "https://api.appcenter.ms/v0.1/apps/<org>/<app name>/errors/2518282636709999999-ac65d33e-277f-4954-8e3b-741cd6c42e4a/attachments"
@@ -409,4 +418,23 @@ public class ACRestClient: RestClient {
     
 //    curl -H "X-API-Token: <token>" "https://api.appcenter.ms/v0.1/apps/<org>/<app name>/errors/2518282636709999999-ac65d33e-277f-4954-8e3b-741cd6c42e4a/attachments/b27fcaac-95a2-4adb-ab51-9dfff1c03948/text"
 
+}
+
+public enum ACCrashFileUploadError : Error {
+
+    case customError(message: String)
+}
+
+extension ACCrashFileUploadError: LocalizedError {
+    
+    public init(message: String){
+        self = .customError(message: message)
+    }
+    
+    public var errorDescription: String? {
+        switch self {
+        case .customError(message: let message):
+             return NSLocalizedString(message, comment: "")
+         }
+    }
 }
