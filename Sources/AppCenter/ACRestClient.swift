@@ -412,6 +412,10 @@ public class ACRestClient: RestClient {
         return decoder
     }
     
+    public func webSearchURL(app: ACApp, searchString: String) -> String {
+        return self.appsWebURL().appending("/\(app.name())/crashes/search?q=").appending(searchString)
+    }
+    
     public func startInteractivePrompt() {
         ACInteractivePrompt().run(client: self)
     }
