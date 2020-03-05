@@ -63,7 +63,7 @@ public class ACRestClient: RestClient {
     }
     
     func appURL(app : ACApp) -> String {
-        return appBaseURL().appending("/\(app.name())")
+        return appBaseURL().appending("/\(app.name)")
     }
     
     func errorGroupURL(app: ACApp) -> String {
@@ -268,7 +268,7 @@ public class ACRestClient: RestClient {
             var crashCopy = crash
             crashCopy.crashGroupID = errorGroup.errorGroupId
             //https://appcenter.ms/orgs/<org>/apps/<app name>/crashes/errors/1532991759u/reports/2518293128619999999-79c5964a-0cb3-4dac-9cf2-21f048e3bcb5/raw
-            crashCopy.crashURL = self.appsWebURL().appending("/\(app.name())/crashes/errors/\(errorGroup.errorGroupId)/reports/\(crash.errorId)/raw")
+            crashCopy.crashURL = self.appsWebURL().appending("/\(app.name)/crashes/errors/\(errorGroup.errorGroupId)/reports/\(crash.errorId)/raw")
             crashCopy.appName = app.display_name
             crashCopy.appBuild = errorGroup.appBuild
             crashCopy.appVersion = errorGroup.appVersion
@@ -413,7 +413,7 @@ public class ACRestClient: RestClient {
     }
     
     public func webSearchURL(app: ACApp, searchString: String) -> String {
-        return self.appsWebURL().appending("/\(app.name())/crashes/search?q=").appending(searchString)
+        return self.appsWebURL().appending("/\(app.name)/crashes/search?q=").appending(searchString)
     }
     
     public func startInteractivePrompt() {

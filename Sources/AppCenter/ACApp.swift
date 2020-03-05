@@ -21,13 +21,6 @@ public struct ACApp : Codable {
     public var created_at: String
     public var updated_at: Date
     public var release_type: String?
-    
-    public func name() -> String {
-        var name = self.display_name
-        name = name.replacingOccurrences(of: " ", with: "-")
-        return name
-    }
-
 }
 
 public struct AppsResponse : Codable {
