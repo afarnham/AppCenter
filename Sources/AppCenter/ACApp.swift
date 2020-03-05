@@ -13,6 +13,7 @@ public struct ACApp : Codable {
     public var app_secret: String
     var description: String?
     public var display_name: String
+    public var name: String
     public var os: String
     public var platform: String
     public var origin: String
